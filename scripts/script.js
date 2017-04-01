@@ -231,10 +231,23 @@ function renderHeader() {
     ]);
 }
 
+function renderNone() {
+    const view = p('main', {className: 'site-main'}, [
+        p('div', {className: 'container'}, [
+            p('h1', {className: 'none-title', textContent: '404 page'}),
+            p('h2', {className: 'none-subtitle', textContent: 'There is no hope!'}),
+            p('p', {className: 'none-nav'},[
+                p('a', {href: '#', textContent: 'Go back?', className: 'none-nav', onclick(evt) {evt.preventDefault(); router.navigateBack()}})
+            ])
+        ])
+    ]);
+    return renderView(view);
+}
 
 
 const router = new Router();
-router.add('/', renderRoot);
+router.add('/', renderRoot)
+    .add('*', renderNone);
 
 
 
