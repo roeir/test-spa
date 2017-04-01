@@ -63,6 +63,19 @@ class Collection {
         }
     }
 
+    findSome(value, key = 'id') {
+        return this.findAll()
+            .find(item => {
+                return item[key] === value;
+            });
+    }
+
+    findAll() {
+        return Object.keys(this.__data).map(key => {
+            return this.__data[key];
+        });
+    }
+
     __getInitialData() {
         try{
             const data = store.get(this.__name);
@@ -90,6 +103,16 @@ class Collection {
             if(field.type && !(field.type === typeof data[prop])) {
                 return false;
             }
+            if(field.ref) {
+                const refKey = '__' + field.ref;
+                data[prop].map(id => {
+                    data[refKey] = () => {
+                        return this.__rootModel[field.ref].findSome(id, 'id');
+                    }
+                });
+
+                return true;
+            }
             if(field.presence && !data[prop]) {
                 return false;
             }
@@ -98,6 +121,17 @@ class Collection {
         });
     }
 }
+
+class BooksController {
+    index() {
+        const books = model.book.findAll();
+        const view = renderBooksIndex(books);
+        renderView(view);
+    }
+}
+
+const booksController = new BooksController();
+
 
 const model = new Model();
 
@@ -124,13 +158,30 @@ model.defineModel({
     }
 });
 
+model.book.insert({
+    id: '1',
+    title: 'Book of Death Man',
+    image: 'http://placehold.it/100x300',
+    genre: 'Novel',
+    year: '2000',
+    authors: ['1']
+});
+model.book.insert({
+    id: '2',
+    title: 'Book of Dead Star',
+    image: 'http://placehold.it/100x300',
+    genre: 'Novel Drama',
+    year: '2001',
+    authors: ['2']
+});
+
 model.author.insert({
     id: '1',
     fullName: 'Death Man Bill',
     avatarUrl: '',
     dateOfDeath: '',
     city: '',
-    books: ['1']
+    books: ['1',]
 });
 model.author.insert({
     id: '2',
@@ -139,23 +190,6 @@ model.author.insert({
     dateOfDeath: '',
     city: '',
     books: ['2']
-});
-
-model.book.insert({
-    id: '1',
-    title: 'Book of Death Man',
-    image: '',
-    genre: 'Novel',
-    year: '2000',
-    authors: ['1']
-});
-model.book.insert({
-    id: '2',
-    title: 'Book of Dead Star',
-    image: '',
-    genre: 'Novel Drama',
-    year: '2001',
-    authors: ['2']
 });
 
 function p(elem, props, children) {
@@ -244,10 +278,28 @@ function renderNone() {
     return renderView(view);
 }
 
+function renderBooksIndex(data) {
+    const renderBook = book => {
+        return p('div', {className: 'book'}, [
+            p('div', {className: 'book-image'}, [
+                p('img', {src: book.image, alt: book.title})
+            ]),
+            p('div', {className: 'book-info'}, [
+                p('a', {href: '/books/' + book.id}, book.title)
+            ])
+        ])
+    };
+
+    return p('div', {className: 'books'}, [
+        p('div', {className: 'container'}, data.map(renderBook))
+    ]);
+}
+
 
 const router = new Router();
 router.add('/', renderRoot)
-    .add('*', renderNone);
+    .add('*', renderNone)
+    .add('/books', booksController.index);
 
 
 
