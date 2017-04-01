@@ -76,3 +76,17 @@ img {
 .site-title {
     text-align: center;
 }
+
+.none-title, .none-subtitle {
+    text-align: center;
+}
+
+.none-nav {
+    text-align: center;
+}
+
+.none-nav a {
+    color: crimson;
+    opacity: 0.8;
+}
+
