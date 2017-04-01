@@ -1,12 +1,15 @@
 class Router {
     constructor() {
-        this.routes = {};
+        this.routes = [];
         window.addEventListener('load', () => this.run());
         window.addEventListener('hashchange', () => this.run());
     }
 
     add(path, fn) {
-        this.routes[path] = fn;
+        this.routes.push({
+            path,
+            fn
+        });
         return this;
     }
 
@@ -14,16 +17,32 @@ class Router {
         history.back();
     }
 
+    __findRoute(path) {
+        return this.routes.find(obj => {
+            if(typeof obj.path === 'string') {
+                if(obj.path === path) {
+                    return obj;
+                }
+            } else {
+                if(obj.path.test(path)) {
+                    return obj;
+                }
+            }
+        });
+    }
+
     run() {
         let path = location.hash.slice(1);
         if(!path) {
             path = '/';
         }
-        const route = this.routes[path];
-        if(route) {
-            return route();
+
+        let route = this.__findRoute(path);
+        if(!route) {
+            route = this.__findRoute('*');
         }
-        return this.routes['*']();
+
+        route.fn();
     }
 }
 
@@ -103,6 +122,10 @@ class Collection {
             if(field.type && !(field.type === typeof data[prop])) {
                 return false;
             }
+            if(field.defaultTo && !data[prop]) {
+                data[prop] = field.defaultTo;
+                return true;
+            }
             if(field.ref) {
                 const refKey = '__' + field.ref;
                 data[prop].map(id => {
@@ -128,9 +151,32 @@ class BooksController {
         const view = renderBooksIndex(books);
         renderView(view);
     }
+
+    show() {
+        const id = location.hash.split('/')[2];
+        const book = model.book.findSome(id);
+        const view = renderBookShow(book);
+        renderView(view);
+    }
+}
+
+class AuthorsController {
+    index() {
+        const authors = model.author.findAll();
+        const view = renderAuthorsIndex(authors);
+        renderView(view);
+    }
+
+    show() {
+        const id = location.hash.split('/')[2];
+        const author = model.author.findSome(id);
+        const view = renderAuthorsShow(author);
+        renderView(view);
+    }
 }
 
 const booksController = new BooksController();
+const authorsController = new AuthorsController();
 
 
 const model = new Model();
@@ -161,7 +207,7 @@ model.defineModel({
 model.book.insert({
     id: '1',
     title: 'Book of Death Man',
-    image: 'http://placehold.it/100x300',
+    image: '',
     genre: 'Novel',
     year: '2000',
     authors: ['1']
@@ -169,7 +215,7 @@ model.book.insert({
 model.book.insert({
     id: '2',
     title: 'Book of Dead Star',
-    image: 'http://placehold.it/100x300',
+    image: '',
     genre: 'Novel Drama',
     year: '2001',
     authors: ['2']
@@ -285,7 +331,7 @@ function renderBooksIndex(data) {
                 p('img', {src: book.image, alt: book.title})
             ]),
             p('div', {className: 'book-info'}, [
-                p('a', {href: '/books/' + book.id}, book.title)
+                p('a', {href: location.hash +'/' + book.id}, book.title)
             ])
         ])
     };
@@ -295,11 +341,53 @@ function renderBooksIndex(data) {
     ]);
 }
 
+function renderBookShow(book) {
+    return p('div', {className: 'book'}, [
+        p('div', {className: 'book-image'}, [
+            p('img', {src: book.image, alt: book.title})
+        ]),
+        p('div', {className: 'book-info'}, [
+            p('a', {href: location.hash +'/' + book.id}, book.title)
+        ])
+    ]);
+}
+
+function renderAuthorsIndex(data) {
+    const renderAuthor = author => {
+        return p('div', {className: 'author'}, [
+            p('div', {className: 'author-avatar'}, [
+                p('img', {src: author.avatarUrl, alt: author.fullName})
+            ]),
+            p('div', {className: 'author-info'}, [
+                p('a', {href: location.hash +'/' + author.id}, author.fullName)
+            ])
+        ]);
+    };
+
+    return p('div', {className: 'authors'}, [
+        p('div', {className: 'container'}, data.map(renderAuthor))
+    ]);
+}
+
+function renderAuthorsShow(author) {
+    return p('div', {className: 'author'}, [
+        p('div', {className: 'author-avatar'}, [
+            p('img', {src: author.avatarUrl, alt: author.fullName})
+        ]),
+        p('div', {className: 'author-info'}, [
+            p('a', {href: location.hash +'/' + author.id}, author.fullName)
+        ])
+    ]);
+}
+
 
 const router = new Router();
 router.add('/', renderRoot)
     .add('*', renderNone)
-    .add('/books', booksController.index);
+    .add('/books', booksController.index)
+    .add(/(\/books\/)(\d+)/, booksController.show)
+    .add('/authors', authorsController.index)
+    .add(/(\/authors\/)(\d+)/, authorsController.show);
 
 
 
