@@ -90,3 +90,23 @@ img {
     opacity: 0.8;
 }
 
+.books .container, .authors .container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.book, .author {
+    flex-basis: 25%;
+    margin: 20px 15px;
+}
+
+.book-image, .author-avatar {
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.book-info, .author-info {
+    text-align: center;
+}
+
