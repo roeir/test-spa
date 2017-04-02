@@ -110,3 +110,17 @@ img {
     text-align: center;
 }
 
+.book-actions, .authors-actions {
+    text-align: center;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.book-actions a, .authors-actions a {
+    margin-bottom: 10px;
+    color: crimson;
+    opacity: 0.8;
+}
+
