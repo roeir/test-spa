@@ -19,12 +19,12 @@ class Router {
 
     __findRoute(path) {
         return this.routes.find(obj => {
-            if(typeof obj.path === 'string') {
-                if(obj.path === path) {
+            if (typeof obj.path === 'string') {
+                if (obj.path === path) {
                     return obj;
                 }
             } else {
-                if(path.match(obj.path)) {
+                if (path.match(obj.path)) {
                     return obj;
                 }
             }
@@ -33,12 +33,12 @@ class Router {
 
     run() {
         let path = location.hash.slice(1);
-        if(!path) {
+        if (!path) {
             path = '/';
         }
 
         let route = this.__findRoute(path);
-        if(!route) {
+        if (!route) {
             route = this.__findRoute('*');
         }
 
@@ -67,11 +67,11 @@ class Collection {
         this.__name = options.name;
         this.__fields = options.fields;
         this.__data = {};
-            // this.__getInitialData();
+        // this.__getInitialData();
     }
 
     insert(data) {
-        if(this.__validateData(data)) {
+        if (this.__validateData(data)) {
             this.__data[data.id] = data;
             this.__saveData(data);
         } else {
@@ -80,6 +80,23 @@ class Collection {
                 data
             });
         }
+    }
+
+    update(id, data) {
+        const item = this.__data[id];
+        if(this.__validateData(data)) {
+            Object.keys(item).forEach(field => {
+                if(item[field] !== data[field]) {
+                    item[field] = data[field];
+                }
+            });
+        }
+        this.__saveData(this.__data);
+    }
+
+    remove(id) {
+        delete this.__data[id];
+        this.__saveData(this.__data);
     }
 
     findSome(value, key = 'id') {
@@ -96,7 +113,7 @@ class Collection {
     }
 
     __getInitialData() {
-        try{
+        try {
             const data = store.get(this.__name);
             return JSON.parse(data);
         } catch (err) {
@@ -106,9 +123,9 @@ class Collection {
 
     __saveData(data) {
         try {
-            store.set(this.__name, JSON.stringify(this.__data));
+            store.set(this.__name, JSON.stringify(data));
         } catch (err) {
-            console.log('Saving error', this.__data);
+            console.log('Saving error', data);
         }
     }
 
@@ -119,14 +136,14 @@ class Collection {
             if (!field) {
                 return false;
             }
-            if(field.type && !(field.type === typeof data[prop])) {
+            if (field.type && !(field.type === typeof data[prop])) {
                 return false;
             }
-            if(field.defaultTo && !data[prop]) {
+            if (field.defaultTo && !data[prop]) {
                 data[prop] = field.defaultTo;
                 return true;
             }
-            if(field.ref) {
+            if (field.ref) {
                 const refKey = '__' + field.ref;
 
                 data[refKey] = () => {
@@ -137,7 +154,7 @@ class Collection {
 
                 return true;
             }
-            if(field.presence && !data[prop]) {
+            if (field.presence && !data[prop]) {
                 return false;
             }
 
@@ -237,6 +254,14 @@ model.book.insert({
     year: '2001',
     authors: ['2']
 });
+model.book.insert({
+    id: '3',
+    title: 'Delete book',
+    image: '',
+    genre: 'Novel Drama',
+    year: '2001',
+    authors: ['1']
+});
 
 model.author.insert({
     id: '1',
@@ -244,7 +269,7 @@ model.author.insert({
     avatarUrl: '',
     dateOfDeath: '',
     city: '',
-    books: ['1']
+    books: ['1', '3']
 });
 model.author.insert({
     id: '2',
@@ -255,9 +280,19 @@ model.author.insert({
     books: ['1', '2']
 });
 
+model.book.update('3', {
+    id: '3',
+    title: 'Delete book updated',
+    image: '',
+    genre: 'Novel Drama',
+    year: '2001',
+    authors: ['1', '2']
+});
+model.book.remove('3');
+
 function p(elem, props, children) {
     const addPropsToElem = (elem, props) => {
-        if(props) {
+        if (props) {
             Object.keys(props).forEach(prop => {
                 elem[prop] = props[prop];
             });
@@ -273,13 +308,13 @@ function p(elem, props, children) {
     };
 
     const addKiddosToElem = (elem, kiddos) => {
-        if(!kiddos) {
+        if (!kiddos) {
             return elem;
         }
         const kiddosList = makeKiddosList(kiddos);
 
         kiddosList.forEach(innerElem => {
-            if(innerElem.nodeType === 1) {
+            if (innerElem.nodeType === 1) {
                 elem.appendChild(innerElem);
                 return;
             }
@@ -333,8 +368,13 @@ function renderNone() {
         p('div', {className: 'container'}, [
             p('h1', {className: 'none-title', textContent: '404 page'}),
             p('h2', {className: 'none-subtitle', textContent: 'There is no hope!'}),
-            p('p', {className: 'none-nav'},[
-                p('a', {href: '#', textContent: 'Go back?', className: 'none-nav', onclick(evt) {evt.preventDefault(); router.navigateBack()}})
+            p('p', {className: 'none-nav'}, [
+                p('a', {
+                    href: '#', textContent: 'Go back?', className: 'none-nav', onclick(evt) {
+                        evt.preventDefault();
+                        router.navigateBack()
+                    }
+                })
             ])
         ])
     ]);
@@ -348,7 +388,7 @@ function renderBooksIndex(data) {
                 p('img', {src: book.image, alt: book.title})
             ]),
             p('div', {className: 'book-info'}, [
-                p('a', {href: location.hash +'/' + book.id}, book.title)
+                p('a', {href: location.hash + '/' + book.id}, book.title)
             ])
         ])
     };
@@ -371,7 +411,11 @@ function renderBookShow(book) {
                 p('img', {src: book.image, alt: book.title})
             ]),
             p('div', {className: 'book-info'}, [
-                p('a', {href: location.hash +'/authors'}, book.title)
+                p('a', {href: location.hash + '/authors'}, book.title)
+            ]),
+            p('div', {className: 'book-actions'}, [
+                p('a', {href: '#', textContent: 'Edit', className: 'action-edit'}),
+                p('a', {href: '#', textContent: 'Delete', className: 'action-delete'})
             ])
         ])
     ])
@@ -384,7 +428,7 @@ function renderAuthorsIndex(data) {
                 p('img', {src: author.avatarUrl, alt: author.fullName})
             ]),
             p('div', {className: 'author-info'}, [
-                p('a', {href: location.hash +'/' + author.id}, author.fullName)
+                p('a', {href: location.hash + '/' + author.id}, author.fullName)
             ])
         ]);
     };
@@ -407,7 +451,7 @@ function renderAuthorsShow(author) {
                 p('img', {src: author.avatarUrl, alt: author.fullName})
             ]),
             p('div', {className: 'author-info'}, [
-                p('a', {href: location.hash +'/books'}, author.fullName)
+                p('a', {href: location.hash + '/books'}, author.fullName)
             ])
         ])
     ])
@@ -427,7 +471,7 @@ function renderBookAuthors(data, bookName) {
 
     return p('div', {className: 'authors'}, [
         p('div', {className: 'container'}, [
-            p('h1', {className: 'book-name'}, 'Authors of '+ bookName)
+            p('h1', {className: 'book-name'}, 'Authors of ' + bookName)
         ]),
         p('div', {className: 'container'}, data.map(renderAuthor))
     ]);
