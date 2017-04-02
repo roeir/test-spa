@@ -84,6 +84,9 @@ class Collection {
 
     update(id, data) {
         const item = this.__data[id];
+        if(!item) {
+            throw new Error({message: 'there is no such id' + id});
+        }
         if(this.__validateData(data)) {
             Object.keys(item).forEach(field => {
                 if(item[field] !== data[field]) {
@@ -95,8 +98,12 @@ class Collection {
     }
 
     remove(id) {
-        delete this.__data[id];
-        this.__saveData(this.__data);
+        if(this.__data[id]) {
+            delete this.__data[id];
+            this.__saveData(this.__data);
+        } else  {
+            throw new Error({message: 'there is no such id' + id});
+        }
     }
 
     findSome(value, key = 'id') {
@@ -184,6 +191,33 @@ class BooksController {
         const view = renderBookAuthors(authors, book.title);
         renderView(view);
     }
+
+    edit() {
+        const id = location.hash.split('/')[2];
+        model.book.update('3', {
+            id: '3',
+            title: 'Delete book updated',
+            image: '',
+            genre: 'Novel Drama',
+            year: '2001',
+            authors: ['1', '2']
+        });
+        const book = model.book.findSome(id);
+        const view = renderBookShow(book);
+        renderView(view);
+    }
+
+    delete() {
+        const id = location.hash.split('/')[2];
+        const book = model.book.findSome(id);
+        const authors = book.__author();
+        authors.forEach(author => {
+           const index = author.books.indexOf(id);
+           author.books.splice(index, 1);
+        });
+        model.book.remove(id);
+        router.navigateBack();
+    }
 }
 
 class AuthorsController {
@@ -207,11 +241,37 @@ class AuthorsController {
         const view = renderAuthorBooks(books, author.fullName);
         renderView(view);
     }
+
+    edit() {
+        const id = location.hash.split('/')[2];
+        model.author.update(id, {
+            id: '1',
+            fullName: 'The Name of Updated Author',
+            avatarUrl: '',
+            dateOfDeath: '',
+            city: '',
+            books: ['1', '3']
+        });
+        const author = model.author.findSome(id);
+        const view = renderAuthorsShow(author);
+        renderView(view);
+    }
+
+    delete() {
+        const id = location.hash.split('/')[2];
+        const author = model.author.findSome(id);
+        const books = author.__book();
+        books.forEach(book => {
+            const index = book.authors.indexOf(id);
+            book.authors.splice(index, 1);
+        });
+        model.author.remove(id);
+        router.navigateBack();
+    }
 }
 
 const booksController = new BooksController();
 const authorsController = new AuthorsController();
-
 
 const model = new Model();
 
@@ -280,15 +340,15 @@ model.author.insert({
     books: ['1', '2']
 });
 
-model.book.update('3', {
-    id: '3',
-    title: 'Delete book updated',
-    image: '',
-    genre: 'Novel Drama',
-    year: '2001',
-    authors: ['1', '2']
-});
-model.book.remove('3');
+// model.book.update('3', {
+//     id: '3',
+//     title: 'Delete book updated',
+//     image: '',
+//     genre: 'Novel Drama',
+//     year: '2001',
+//     authors: ['1', '2']
+// });
+// model.book.remove('3');
 
 function p(elem, props, children) {
     const addPropsToElem = (elem, props) => {
@@ -414,8 +474,24 @@ function renderBookShow(book) {
                 p('a', {href: location.hash + '/authors'}, book.title)
             ]),
             p('div', {className: 'book-actions'}, [
-                p('a', {href: '#', textContent: 'Edit', className: 'action-edit book-edit'}),
-                p('a', {href: '#', textContent: 'Delete', className: 'action-delete book-delete'})
+                p('a', {
+                    href: '#',
+                    textContent: 'Edit',
+                    className: 'action-edit book-edit',
+                    onclick(evt) {
+                        evt.preventDefault();
+                        booksController.edit();
+                    }
+                }),
+                p('a', {
+                    href: '#',
+                    textContent: 'Delete',
+                    className: 'action-delete book-delete',
+                    onclick(evt) {
+                        evt.preventDefault();
+                        booksController.delete();
+                    }
+                })
             ])
         ])
     ])
@@ -454,8 +530,24 @@ function renderAuthorsShow(author) {
                 p('a', {href: location.hash + '/books'}, author.fullName)
             ]),
             p('div', {className: 'authors-actions'}, [
-                p('a', {href: '#', textContent: 'Edit', className: 'action-edit author-edit'}),
-                p('a', {href: '#', textContent: 'Delete', className: 'action-delete author-delete'})
+                p('a', {
+                    href: '#',
+                    textContent: 'Edit',
+                    className: 'action-edit author-edit',
+                    onclick(evt) {
+                        evt.preventDefault();
+                        authorsController.edit();
+                    }
+                }),
+                p('a', {
+                    href: '#',
+                    textContent: 'Delete',
+                    className: 'action-delete author-delete',
+                    onclick(evt) {
+                        evt.preventDefault();
+                        authorsController.delete();
+                    }
+                })
             ])
         ])
     ])
