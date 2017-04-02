@@ -414,8 +414,8 @@ function renderBookShow(book) {
                 p('a', {href: location.hash + '/authors'}, book.title)
             ]),
             p('div', {className: 'book-actions'}, [
-                p('a', {href: '#', textContent: 'Edit', className: 'action-edit'}),
-                p('a', {href: '#', textContent: 'Delete', className: 'action-delete'})
+                p('a', {href: '#', textContent: 'Edit', className: 'action-edit book-edit'}),
+                p('a', {href: '#', textContent: 'Delete', className: 'action-delete book-delete'})
             ])
         ])
     ])
@@ -452,6 +452,10 @@ function renderAuthorsShow(author) {
             ]),
             p('div', {className: 'author-info'}, [
                 p('a', {href: location.hash + '/books'}, author.fullName)
+            ]),
+            p('div', {className: 'authors-actions'}, [
+                p('a', {href: '#', textContent: 'Edit', className: 'action-edit author-edit'}),
+                p('a', {href: '#', textContent: 'Delete', className: 'action-delete author-delete'})
             ])
         ])
     ])
