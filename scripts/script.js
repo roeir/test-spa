@@ -403,7 +403,17 @@ function renderView(view) {
 function renderRoot() {
     const view = p('main', {className: 'site-main'}, [
         p('div', {className: 'container'}, [
-            p('h1', {className: 'site-title', textContent: 'Death poets\' community'})
+            p('h1', {className: 'site-title', textContent: 'Death poets\' community'}),
+            p('div', {className: 'site-actions'}, [
+                p('a', {className: 'add-btn add-author', href: '#', onclick(evt) {
+                    evt.preventDefault();
+                    console.log('add author');
+                }}, 'Add new author'),
+                p('a', {className: 'add-btn add-book', href: '#', onclick(evt) {
+                    evt.preventDefault();
+                    console.log('add book');
+                }}, 'Add new book')
+            ])
         ])
     ]);
     return renderView(view);
