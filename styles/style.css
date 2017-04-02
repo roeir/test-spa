@@ -124,3 +124,29 @@ img {
     opacity: 0.8;
 }
 
+.site-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.add-btn {
+    margin-right: 20px;
+    border-radius: 3px;
+    display: block;
+    padding: 10px 15px;
+    background-color: crimson;
+    color: #fff;
+    text-decoration: none;
+    text-transform: uppercase;
+    opacity: 0.8;
+    transition: opacity 200ms ease-in-out;
+}
+
+.add-btn:hover {
+    opacity: 0.5;
+}
+
+.add-btn:last-child {
+    margin-right: 0;
+}
+
