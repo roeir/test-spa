@@ -140,6 +140,9 @@ class Collection {
         const dataProps = Object.keys(data);
         return dataProps.every(prop => {
             const field = this.__fields[prop];
+            if(data.id === this.__data.id) {
+                return false;
+            }
             if (!field) {
                 return false;
             }
@@ -407,16 +410,57 @@ function renderRoot() {
             p('div', {className: 'site-actions'}, [
                 p('a', {className: 'add-btn add-author', href: '#', onclick(evt) {
                     evt.preventDefault();
-                    console.log('add author');
+                    showAddForm('author');
                 }}, 'Add new author'),
                 p('a', {className: 'add-btn add-book', href: '#', onclick(evt) {
                     evt.preventDefault();
-                    console.log('add book');
+                    showAddForm('book');
                 }}, 'Add new book')
             ])
         ])
     ]);
     return renderView(view);
+}
+
+function showAddForm(modelName) {
+    const form = document.querySelector('.add-form-wrap');
+    const formTitle = form.querySelector('.add-form-title');
+    const formBody = form.querySelector('.add-form');
+    formTitle.innerHTML = `Add new ${modelName}:`;
+    form.classList.add('visible');
+    const closeBtn = form.querySelector('.add-form-close span');
+    closeBtn.addEventListener('click', () => {form.classList.remove('visible')});
+
+    const fields = model[modelName].__fields;
+    let formHtml = Object.keys(fields).map(field => {
+       if(fields[field].ref) {
+           return `
+               <label>
+                    <span>${field.toUpperCase()}</span>
+                    ${createRefHtml(fields[field].ref)}
+               </label>
+           `;
+       }
+       return `
+           <label>
+                <span>${field.toUpperCase()}</span>
+                <input type="text" name="${field}">
+           </label>
+       `;
+    }).join('');
+    formHtml += '<div class="btn-wrap"><button class="form-sb" type="submit">Submit</button></div>';
+    formBody.innerHTML = formHtml;
+}
+
+function createRefHtml(ref) {
+    const refArr = model[ref].findAll();
+    const refHtml = refArr.map(ref => {
+        return `
+            <option value="${ref.id}">${ref.title? ref.title: ref.fullName}</option>
+        `
+    }).join('');
+
+    return `<select size="2" multiple="true" name="ref" ">${refHtml}</select>`;
 }
 
 function renderHeader() {
