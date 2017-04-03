@@ -197,8 +197,8 @@ class BooksController {
 
     edit() {
         const id = location.hash.split('/')[2];
-        model.book.update('3', {
-            id: '3',
+        model.book.update(id, {
+            id,
             title: 'Delete book updated',
             image: '',
             genre: 'Novel Drama',
@@ -248,7 +248,7 @@ class AuthorsController {
     edit() {
         const id = location.hash.split('/')[2];
         model.author.update(id, {
-            id: '1',
+            id,
             fullName: 'The Name of Updated Author',
             avatarUrl: '',
             dateOfDeath: '',
